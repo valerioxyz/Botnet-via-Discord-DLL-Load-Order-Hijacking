@@ -17,7 +17,7 @@ Se ci sono più versioni, lo script che sposta la dll deve copiare al dll in tut
 
 ## 3. Far partire `simple_server.py`
 
-L'attaccante fa partire il server "mangiafuoco".
+L'attaccante fa partire il server.
 
 ## 4. Far partire `discord.exe` 
 
