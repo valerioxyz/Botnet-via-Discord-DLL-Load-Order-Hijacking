@@ -4,7 +4,7 @@
 
 ## 1. Costruire dll malevola
 
-E' stata utilizzata la dll WSL_32.dll per utilizzare le socket nella dll malevola.
+E' stata utilizzata la dll `WSL_32.dll` per utilizzare le socket nella dll malevola.
 
 La dll malevola sovrascrive il comportamento di `UMPDC.dll`. è stata scelta tale dll tramite un processo iterativo, provando tutte le possibili dll che venivano cercate prima nel path `%localappdata%`. Lì è stato messa la dll malevola. Quindi verrà caricata la nostra invece che l'originale `UMPDC.dll`, localizzata in `C:\Windows\SysWOW64\umpdc.dll`.
 
