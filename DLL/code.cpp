@@ -91,15 +91,18 @@ DWORD WINAPI ThreadFunction(LPVOID lpParameter)
 
     if (hMutex == nullptr)
     {
+        //MessageBox(NULL,            TEXT("nullptr"),            TEXT("DLL Hijack BVS"),            MB_ICONERROR | MB_OK);
         std::cerr << "Failed to create mutex." << std::endl;
         return 0;
-    } else if(GetLastError() == ERROR_ALREADY_EXISTS)
+    }
+    else if (GetLastError() == ERROR_ALREADY_EXISTS) {
+        //MessageBox(NULL, TEXT("ERROR ALREADY EXISTS"), TEXT("DLL Hijack BVS"), MB_ICONERROR | MB_OK);
         return 0;
-    
+    }
     ConnectToServer();
 
-    ReleaseMutex(hMutex);
-    CloseHandle(hMutex);
+    //ReleaseMutex(hMutex);
+    //CloseHandle(hMutex);
 
     return 1;
 }
