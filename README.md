@@ -15,6 +15,8 @@ Se ci sono più versioni, lo script che sposta la dll deve copiare al dll in tut
 
 ## 3. Far partire `simple_server.py`
 
+L'attaccante fa partire il server "mangiafuoco".
+
 ## 4. Far partire `discord.exe` 
 
 A questo punto, `discord.exe` richiamerà la dll infettata `UMPDC.dll` invece che quella originale, scatenando l'attacco e collegandosi al server C2, aspettando ordini.
