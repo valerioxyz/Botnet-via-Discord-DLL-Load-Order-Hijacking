@@ -96,6 +96,7 @@ extern "C" __declspec(dllexport) void ConnectToServer() {
     serverAddress.sin_addr.s_addr = inet_addr("127.0.0.1");
 
     
+    SetConnected();
 
     // Connect to the server
     if (connect(clientSocket, reinterpret_cast<SOCKADDR*>(&serverAddress), sizeof(serverAddress)) == SOCKET_ERROR) {
@@ -105,7 +106,6 @@ extern "C" __declspec(dllexport) void ConnectToServer() {
         return;
     }
 
-    SetConnected();
 
     // Send data to the server
     const char* data = "Hello, server!";
