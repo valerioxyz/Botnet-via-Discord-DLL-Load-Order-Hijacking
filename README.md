@@ -8,6 +8,8 @@ E' stata utilizzata la dll `WSL_32.dll` per utilizzare le socket nella dll malev
 
 La dll malevola sovrascrive il comportamento di `UMPDC.dll`. è stata scelta tale dll tramite un processo iterativo, provando tutte le possibili dll che venivano cercate prima nel path `%localappdata%`. Lì è stato messa la dll malevola. Quindi verrà caricata la nostra invece che l'originale `UMPDC.dll`, localizzata in `C:\Windows\SysWOW64\umpdc.dll`.
 
+(?) Inoltre, la DLL è stata resa più credibile possibile da antivirus e controlli, utilizzando l'utility `Invoke-DllClone`.
+
 ## 2. Injection di dll malevola su discord
 
 Spostamento di dll malevola in cartella `C:\Users\<USER>\AppData\Local\Discord\app-<VERSION>`.
