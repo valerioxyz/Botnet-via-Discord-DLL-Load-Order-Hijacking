@@ -29,10 +29,14 @@ In background, il server manderà al client comandi e il client li eseguirà.
 
 I possibili comandi sono:
 1. GET HTTP REQUEST (DDoS)
+    
     Parametri:
     * `website`
     * `req/min`
-    * `stop_time`
+    * `minutes`
 2. PING/PONG (per verificare che il client sia ancora vivo)
 3. CLIENT_INFO (per avere informazioni del client)
 4. DNS RESOLVE (può risolvere per noi un hostname)
+
+    Parametri:
+    * `url`
