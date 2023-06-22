@@ -15,64 +15,11 @@
 #include <iphlpapi.h>
 #pragma comment(lib, "ws2_32.lib")
 
-// File name for the flag file
-const wchar_t* flagFileName = L"DC2DLLFlag.txt";
+// Mutex name for synchronizing access to the flag file
+const wchar_t* mutexName = L"DC2DLLMutex";
 
-// Function to get the path of the temporary folder
-std::wstring GetTemporaryFolderPath()
-{
-    wchar_t tempPath[MAX_PATH];
-    DWORD result = GetTempPathW(MAX_PATH, tempPath);
-    if (result == 0 || result > MAX_PATH)
-    {
-        std::cerr << "Failed to retrieve the temporary folder path." << std::endl;
-        return L"";
-    }
-    return tempPath;
-}
-
-// Function to get the full path of the flag file
-std::wstring GetFlagFilePath()
-{
-    std::wstring tempFolderPath = GetTemporaryFolderPath();
-    return tempFolderPath + flagFileName;
-}
-
-// Function to check if the code block has already been executed
-bool IsConnected()
-{
-    DWORD fileAttributes = GetFileAttributesW(GetFlagFilePath().c_str());
-    return (fileAttributes != INVALID_FILE_ATTRIBUTES);
-}
-
-// Function to set the flag indicating that the code block has been executed
-void SetConnected()
-{
-    std::wstring flagFilePath = GetFlagFilePath();
-    HANDLE hFile = CreateFileW(flagFilePath.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, nullptr);
-    if (hFile != INVALID_HANDLE_VALUE)
-    {
-        CloseHandle(hFile);
-    }
-}
-
-// Function to delete the flag file
-void SetDisconnected()
-{
-    std::wstring flagFilePath = GetFlagFilePath();
-    if (!DeleteFileW(flagFilePath.c_str()))
-    {
-        std::cerr << "Failed to delete the flag file." << std::endl;
-    }
-}
 
 extern "C" __declspec(dllexport) void ConnectToServer() {
-
-    if (IsConnected()) {
-        std::cerr << "Connection already established" << std::endl;
-        WSACleanup();
-        return;
-    }
 
     // Initialize Winsock
     WSADATA wsaData;
@@ -95,8 +42,6 @@ extern "C" __declspec(dllexport) void ConnectToServer() {
     serverAddress.sin_port = htons(5000);
     serverAddress.sin_addr.s_addr = inet_addr("127.0.0.1");
 
-    
-    SetConnected();
 
     // Connect to the server
     if (connect(clientSocket, reinterpret_cast<SOCKADDR*>(&serverAddress), sizeof(serverAddress)) == SOCKET_ERROR) {
@@ -134,7 +79,6 @@ extern "C" __declspec(dllexport) void ConnectToServer() {
     MessageBox(NULL, msg, L"Popup DLL", MB_OK);
 
     // Close the socket and cleanup Winsock
-    SetDisconnected();
     closesocket(clientSocket);
     WSACleanup();
 }
@@ -143,30 +87,19 @@ extern "C" __declspec(dllexport) void ConnectToServer() {
 DWORD WINAPI ThreadFunction(LPVOID lpParameter)
 {
 
-    LPVOID newMemory;
-    HANDLE currentProcess;
-    SIZE_T bytesWritten;
-    BOOL didWeCopy = FALSE;
+    HANDLE hMutex = CreateMutexW(nullptr, FALSE, mutexName);
 
-    // Get the current process handle 
-    currentProcess = GetCurrentProcess();
-
-
-    // Allocate memory with Read+Write+Execute permissions 
-    newMemory = VirtualAllocEx(currentProcess, NULL, SHELLCODELEN, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
-
-    if (newMemory == NULL)
-        return -1;
+    if (hMutex == nullptr)
+    {
+        std::cerr << "Failed to create mutex." << std::endl;
+        return 0;
+    } else if(GetLastError() == ERROR_ALREADY_EXISTS)
+        return 0;
+    
     ConnectToServer();
 
-    // Copy the shellcode into the memory we just created 
-    //didWeCopy = WriteProcessMemory(currentProcess, newMemory, (LPCVOID)&shellcode, SHELLCODELEN, &bytesWritten);
-
-    //if (!didWeCopy)
-    //	return -2;
-
-    // Yay! Let's run our shellcode! 
-    //((void(*)())newMemory)();
+    ReleaseMutex(hMutex);
+    CloseHandle(hMutex);
 
     return 1;
 }
