@@ -21,7 +21,7 @@ def handle_client(client_socket, client_address):
 def start_server():
     # Indirizzo IP del server e porta da ascoltare
     ip = ''  #qualunque server
-    port = 8000
+    port = 5000
 
     # Crea un socket TCP/IP
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
