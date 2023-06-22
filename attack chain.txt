@@ -1,0 +1,26 @@
+
+attack chain:
+1. hostare malware su cdn discord 
+2. phishing per convincere utente a cliccare su malware
+3. malware copia dll fallata in %localappdata% (user writeable)
+4. utente apre discord e dll apre remote shell
+
+fase 1: 
+1. creare dll hello world
+2. inject dll manualmente su discord
+	(capire se invokeclone va chiamato solo una volta oppure per ogni pc contaminato)
+3. avviamo discord. dll caricata? => fase 2
+
+fase 2:
+iterativamente migliorare la dll per es. reverse shell
+
+fase 3:
+fare il programma exe che sposta o crea (in base a invokeclone) file dll in cartella di discord
+
+fase 4:
+pack malware + dll malevola e upload su discord
+hosting packed file su discord 
+fare phishing 
+
+fase 5:
+alterare dll per fare botnet (es. telegram public channel) 
