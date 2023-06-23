@@ -11,12 +11,15 @@ participant client3
 
 
 activate ATK_SERVER
-client1 -> ATK_SERVER: Apertura connessione
-client2 -> ATK_SERVER: Apertura connessione
-client3 -> ATK_SERVER: Apertura connessione
-activate client3
-activate client2
 activate client1
+activate client2
+activate client3
+client1 -> ATK_SERVER: Apertura connessione
+
+client2 -> ATK_SERVER: Apertura connessione
+
+client3 -> ATK_SERVER: Apertura connessione
+
 
 
 
