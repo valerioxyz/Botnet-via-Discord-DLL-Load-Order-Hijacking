@@ -1,5 +1,9 @@
 # C2 BOTNET via DISCORD DLL SIDE LOADING
 
+# Atk example
+
+<img alt="Sequence Diagram" src="documentazione\sequence_diagram\img.png" />
+
 # Processo del progetto
 
 ## 1. Costruire dll malevola
