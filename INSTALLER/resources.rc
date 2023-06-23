@@ -1,0 +1,4 @@
+#include "resources.h"
+MY_DLL RCDATA "UMPDC.dll"
+
+
