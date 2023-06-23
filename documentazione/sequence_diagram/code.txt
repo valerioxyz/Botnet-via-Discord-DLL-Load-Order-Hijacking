@@ -1,0 +1,32 @@
+@startuml
+actor ATK_HOST
+participant ATK_SERVER
+
+participant client1
+
+participant client2
+
+participant client3
+
+
+
+activate ATK_SERVER
+client1 -> ATK_SERVER: Apertura connessione
+client2 -> ATK_SERVER: Apertura connessione
+client3 -> ATK_SERVER: Apertura connessione
+activate client3
+activate client2
+activate client1
+
+
+
+ATK_HOST -> ATK_SERVER: Imponi comando
+ATK_SERVER -> client1: Invia comando
+client1 --> ATK_SERVER: Return status (+ info)
+ATK_SERVER -> client2: Invia comando
+client2 --> ATK_SERVER: Return status (+ info)
+ATK_SERVER -> client3: Invia comando
+
+client3 --> ATK_SERVER: Return status (+ info)
+
+@enduml
