@@ -27,6 +27,10 @@ L'attaccante fa partire il server.
 
 A questo punto, `discord.exe` richiamerà la dll infettata `UMPDC.dll` invece che quella originale, scatenando l'attacco e collegandosi al server C2, aspettando ordini.
 
+La causa principale a livello di codice del DLL side loading è un'implementazione impropria o insicura della ricerca e del caricamento delle librerie DLL da parte dell'applicazione.
+
+Ciò si verifica quando l'applicazione utilizza una funzione come `LoadLibrary` per caricare una DLL senza specificare un percorso completo per la libreria richiesta. Invece, l'applicazione si affida alla ricerca automatica delle DLL nelle posizioni predefinite o nelle directory di ricerca specificate.
+
 ## 5. Client utilizza normalmente discord mentre in background si è connesso al server hostato su `simple_server.py`
 
 In background, il server manderà al client comandi e il client li eseguirà.
