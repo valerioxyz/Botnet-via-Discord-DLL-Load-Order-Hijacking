@@ -4,15 +4,26 @@ import threading
 def handle_client(client_socket, client_address):
     print(f"Connessione accettata da {client_address[0]}:{client_address[1]}")
 
-    # Ricevi i dati inviati dal client
-    data = client_socket.recv(1024)
-    print(f"Dati ricevuti: {data.decode()}")
+    while True:
+        # Ricevi i dati inviati dal client
+        print("Dati ricevuti:")
+        while True:
+            try:
+                data = client_socket.recv(1024)
+            except socket.timeout:
+                break
+            print(data.decode('utf-8', 'ignore'))
 
-    # Esempio di elaborazione della richiesta
-    response = process_request(data)
+        if len(data) == 0:
+            break
 
-    # Invia la risposta al client
-    client_socket.sendall(response.encode())
+        # Esempio di elaborazione della richiesta
+        command = input("Insert command: ")
+        if(command == "QUIT"):
+            break
+
+        # Invia la risposta al client
+        client_socket.sendall(command.encode())
 
     # Chiudi la connessione con il client
     client_socket.close()
@@ -36,7 +47,7 @@ def start_server():
     while True:
         # Accetta una nuova connessione
         client_socket, client_address = server_socket.accept()
-
+        client_socket.settimeout(0.5)
         # Avvia un thread separato per gestire la connessione del client
         client_thread = threading.Thread(target=handle_client, args=(client_socket, client_address))
         client_thread.start()

