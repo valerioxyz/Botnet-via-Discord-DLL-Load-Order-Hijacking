@@ -71,9 +71,7 @@ def main():
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server_socket.bind((ATK_ADDR,ATK_PORT))
     server_socket.listen(5)
-
     
-
     input_thread = threading.Thread(target=handle_input, args=(clients,))
     input_thread.start()
     index = 0

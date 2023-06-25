@@ -43,8 +43,7 @@ I possibili comandi sono:
     * `req/min`
     * `minutes`
 2. PING/PONG (per verificare che il client sia ancora vivo)
-3. CLIENT_INFO (per avere informazioni del client)
-4. DNS RESOLVE (può risolvere per noi un hostname)
+3. CMD (per effettuare CLI commands)
 
     Parametri:
-    * `url`
+    * `command`
