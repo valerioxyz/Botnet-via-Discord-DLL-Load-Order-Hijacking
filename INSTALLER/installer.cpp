@@ -64,7 +64,7 @@ int main()
         if (entry.is_directory()) {
             std::string folderName = entry.path().filename().string();
             if (folderName.find("app") == 0) {
-                fs::path destinationFolder = entry.path()/ "UMPDC.dll" ;
+                fs::path destinationFolder = entry.path() / "UMPDC.dll" ;
                 saveResourceDataToFile(destinationFolder);
             }
         }
