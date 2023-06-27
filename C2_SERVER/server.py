@@ -59,14 +59,14 @@ def showList(clients):
             print("Lista vuota")
         for client in clients:
             elapsed_time = int(time.time()-client.timestamp)
-            print(f"{client.index+1}\t{client.client_address[0]}:{client.client_address[1]}\t{elapsed_time:.2f}s")
+            print(f"{client.index}\t{client.client_address[0]}:{client.client_address[1]}\t{elapsed_time:.2f}s")
 
 def handle_input():
     global clients, clients_lock
     print("[Input Thread] Started")
     while True:
         message = input("Enter message to send to all clients (Q to quit):\n")
-        if message.upper() == 'Q':
+        if message.upper() == 'Q' or message.upper() == 'QUIT':
             with clients_lock:
                 for client in clients:
                     client.client_socket.shutdown(socket.SHUT_RDWR)
@@ -92,7 +92,7 @@ def main():
     input_thread = threading.Thread(target=handle_input)
     input_thread.daemon = True
     input_thread.start()
-    index = 0
+    index = 1
 
     while True:
         try:

