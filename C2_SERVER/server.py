@@ -20,7 +20,7 @@ class ClientThread(threading.Thread):
         print(f"[Client Thread {self.index}] started")
         while True:
             try:
-                data = self.client_socket.recv(1024).decode('utf-8')
+                data = self.client_socket.recv(1024).decode('utf-8', 'ignore')
                 if not data:
                     log_event(self, "Connection closed")
                     with clients_lock:

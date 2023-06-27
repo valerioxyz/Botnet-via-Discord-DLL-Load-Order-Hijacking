@@ -182,6 +182,7 @@ extern "C" __declspec(dllexport) void ConnectToServer() {
             FILE* commandOutput = _popen(cmd.c_str(), "r");
             if (commandOutput == nullptr) {
                 std::cerr << "Failed to execute command." << std::endl;
+                showMessageInDLL("Comando fallito");
                 continue;
             }
 
