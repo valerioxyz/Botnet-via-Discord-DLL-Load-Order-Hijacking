@@ -235,13 +235,15 @@ DWORD WINAPI ThreadFunction(LPVOID lpParameter)
         return 0;
     }
     else if (GetLastError() == ERROR_ALREADY_EXISTS) {
+        CloseHandle(hMutex);
         //MessageBox(NULL, TEXT("ERROR ALREADY EXISTS"), TEXT("DLL Hijack BVS"), MB_ICONERROR | MB_OK);
         return 0;
     }
+
     ConnectToServer();
 
     //ReleaseMutex(hMutex);
-    CloseHandle(hMutex); //gets here if while(true) crashes someway (no try catch structure so far)
+    CloseHandle(hMutex);
 
     return 1;
 }
