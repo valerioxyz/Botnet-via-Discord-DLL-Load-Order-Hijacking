@@ -1,9 +1,3 @@
-//   Dll Hijacking via Thread Creation 
-// Author - Vivek Ramachandran 
-//  Learn Pentesting Online --  http://PentesterAcademy.com/topics and http://SecurityTube-Training.com 
-// Free Infosec Videos --  http://SecurityTube.net 
-
-
 #include "pch.h"
 #include <windows.h>
 
