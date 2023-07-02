@@ -2,7 +2,7 @@
 
 # Atk example
 
-<img alt="Sequence Diagram" src="documentazione\sequence_diagram\img.png" />
+<img alt="Sequence Diagram" src="documentazione/presentazione/immagini_presentazione/sequence_diagram/img.png" />
 
 # Processo del progetto
 
