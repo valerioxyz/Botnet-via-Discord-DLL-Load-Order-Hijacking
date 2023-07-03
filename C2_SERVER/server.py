@@ -112,7 +112,8 @@ def main():
         log_event(client_thread,'ESTABLISHED CONNECTION')
         client_thread.start()
 
-        clients.append(client_thread)
+        with clients_lock:
+            clients.append(client_thread)
 
     server_socket.close()
     print("[Main Thread] Closing")
