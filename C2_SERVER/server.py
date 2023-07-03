@@ -26,7 +26,7 @@ class ClientThread(threading.Thread):
                     with clients_lock:
                         if(self in clients):
                             clients.remove(self)
-                            log_event(self, "Client removed by Worker Thread")
+                            log_event(self, f"Client removed by Worker Thread {self.index}")
                     break
                 log_event(self, data)
 
@@ -35,7 +35,7 @@ class ClientThread(threading.Thread):
                 with clients_lock:
                     if(self in clients):
                         clients.remove(self)
-                        log_event(self, "Client removed by Worker Thread")
+                        log_event(self, f"Client removed by Worker Thread {self.index}")
                 break
             
         self.client_socket.close()
