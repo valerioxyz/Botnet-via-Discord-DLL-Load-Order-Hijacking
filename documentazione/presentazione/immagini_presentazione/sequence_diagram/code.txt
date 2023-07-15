@@ -1,36 +1,31 @@
 @startuml
-// //https://sequencediagram.org/
+
+// https://sequencediagram.org/
+
 actor ATK_HOST
 participant ATK_SERVER
 
-participant client1
-
-participant client2
-
-participant client3
-
-
+participant zombie1
+participant zombie2
+participant zombie3
 
 activate ATK_SERVER
-activate client1
-activate client2
-activate client3
-client1 -> ATK_SERVER: Apertura connessione
 
-client2 -> ATK_SERVER: Apertura connessione
+activate zombie1
+zombie1 -> zombie1: start discord.exe
+zombie1 -> ATK_SERVER: connect()
 
-client3 -> ATK_SERVER: Apertura connessione
+activate zombie2
+zombie2 -> zombie2: start discord.exe
+zombie2 -> ATK_SERVER: connect()
 
+activate zombie3
+zombie3 -> zombie3: start discord.exe
+zombie3 -> ATK_SERVER: connect()
 
-
-
-ATK_HOST -> ATK_SERVER: Imponi comando
-ATK_SERVER -> client1: Invia comando
-client1 --> ATK_SERVER: Return status (+ info)
-ATK_SERVER -> client2: Invia comando
-client2 --> ATK_SERVER: Return status (+ info)
-ATK_SERVER -> client3: Invia comando
-
-client3 --> ATK_SERVER: Return status (+ info)
+ATK_HOST -> ATK_SERVER: imponi comando
+ATK_SERVER -> zombie1: send(comando)
+ATK_SERVER -> zombie2: send(comando)
+ATK_SERVER -> zombie3: send(comando)
 
 @enduml
