@@ -1,4 +1,4 @@
-# C2 BOTNET via DISCORD DLL SIDE LOADING
+# C2 BOTNET via DISCORD DLL LOAD ORDER HIJACKING
 
 # Atk example
 
@@ -27,7 +27,7 @@ L'attaccante fa partire il server.
 
 A questo punto, `discord.exe` richiamerà la dll infettata `UMPDC.dll` invece che quella originale, scatenando l'attacco e collegandosi al server C2, aspettando ordini.
 
-La causa principale a livello di codice del DLL side loading è un'implementazione impropria o insicura della ricerca e del caricamento delle librerie DLL da parte dell'applicazione.
+La causa principale a livello di codice del DLL LOAD ORDER HIJACKING è un'implementazione impropria o insicura della ricerca e del caricamento delle librerie DLL da parte dell'applicazione.
 
 Ciò si verifica quando l'applicazione utilizza una funzione come `LoadLibrary` per caricare una DLL senza specificare un percorso completo per la libreria richiesta. Invece, l'applicazione si affida alla ricerca automatica delle DLL nelle posizioni predefinite o nelle directory di ricerca specificate.
 
