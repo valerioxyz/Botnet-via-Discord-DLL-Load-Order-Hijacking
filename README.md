@@ -13,7 +13,7 @@ La dll malevola sovrascrive il comportamento di `UMPDC.dll`. è stata scelta tal
 ## 2. Injection di dll malevola su discord
 
 Spostamento di dll malevola in cartella `C:\Users\<USER>\AppData\Local\Discord\app-<VERSION>`.
-Se ci sono più versioni, allora lo script che sposta la dll deve copiare al dll in tutte le cartelle corrispondenti a versioni differenti di discord.
+Se ci sono più versioni, allora lo script che sposta la dll deve copiare la dll in tutte le cartelle corrispondenti a versioni differenti di discord.
 
 ## 3. Far partire `server.py`
 
