@@ -1,26 +1,18 @@
+
 #include "pch.h"
 #include <windows.h>
-
-
-#define _WINSOCK_DEPRECATED_NO_WARNINGS
-#include <synchapi.h>
-
-#include <iostream>
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#include <iphlpapi.h>
-#include <wininet.h>
-#include <chrono>
 #include <thread>
-
 #include <iostream>
+#include <ws2tcpip.h>
+#include <wininet.h>
 #include <algorithm>
 #include <sstream>
 #include <vector>
 
-
 #pragma comment(lib, "ws2_32.lib")
 #pragma comment(lib, "wininet.lib")
+
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
 
 // Mutex name for synchronizing access to the flag file
 const wchar_t* mutexName = L"DC2DLLMutex";
@@ -216,7 +208,8 @@ DWORD WINAPI ThreadFunction(LPVOID lpParameter)
     if (hMutex == nullptr) {
         std::cerr << "Failed to create mutex." << std::endl;
         return 0;
-    } else if (GetLastError() == ERROR_ALREADY_EXISTS) { // Unica istanza già attiva
+    }
+    else if (GetLastError() == ERROR_ALREADY_EXISTS) { // Unica istanza già attiva
         CloseHandle(hMutex);
         return 0;
     }
@@ -244,7 +237,7 @@ DllMain(HANDLE hDll, DWORD dwReason, LPVOID lpReserved)
         // Create a thread and close the handle as we do not want to use it to wait for it 
 
         threadHandle = CreateThread(NULL, 0, ThreadFunction, NULL, 0, NULL);
-        if(threadHandle != nullptr)
+        if (threadHandle != nullptr)
             CloseHandle(threadHandle);
 
         break;
